@@ -50,8 +50,25 @@
 ; Your goal is to write the score method.
 
 (defun score (dice)
-  ; You need to write this method
-)
+  (let* ((grouped (loop
+                    for die in dice
+                    with groups = (loop for i from 1 upto 6
+                                        with initial = (make-hash-table)
+                                        do (setf (gethash i initial) 0)
+                                        finally (return initial))
+                    do (incf (gethash die groups))
+                    finally (return groups)))
+         (ones  (gethash 1 grouped))
+         (fives (gethash 5 grouped)))
+    (+ (* 1000 (floor ones  3))
+       (* 100  (mod   ones  3))
+       (* 50   (mod   fives 3))
+       (loop
+         for number from 2 to 6
+         for threes = (floor (gethash number grouped) 3)
+         when (> threes 0)
+           collect (* threes number 100) into xs
+         finally (return (apply #'+ xs))))))
 
 (define-test test-score-of-an-empty-list-is-zero
     (assert-equal 0 (score nil)))
